@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -15,11 +15,12 @@ contract MockUSDT is ERC20, Ownable {
     ) ERC20(name, symbol) Ownable(msg.sender) {}
 
     /**
-     * @notice Allows anyone to mint tokens for testing.
+     * @notice Allows the owner to mint tokens for testing.
+     * @dev Restricted to owner for testnet safety.
      * @param to The address to mint tokens to.
      * @param amount The amount of tokens to mint.
      */
-    function mint(address to, uint256 amount) public {
+    function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
     }
 }
