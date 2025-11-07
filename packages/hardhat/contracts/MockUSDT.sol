@@ -15,12 +15,13 @@ contract MockUSDT is ERC20, Ownable {
     ) ERC20(name, symbol) Ownable(msg.sender) {}
 
     /**
-     * @notice Allows the owner to mint tokens for testing.
-     * @dev Restricted to owner for testnet safety.
+     * @notice Allows anyone to mint tokens for testing.
+     * @dev Open minting for local development convenience.
+     * Consider restricting to onlyOwner for testnet deployments.
      * @param to The address to mint tokens to.
      * @param amount The amount of tokens to mint.
      */
-    function mint(address to, uint256 amount) public onlyOwner {
+    function mint(address to, uint256 amount) public {
         _mint(to, amount);
     }
 }
