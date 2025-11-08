@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 
 // We use the fetch API as per the Gemini API instructions
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
 export async function POST(req: Request) {
   try {

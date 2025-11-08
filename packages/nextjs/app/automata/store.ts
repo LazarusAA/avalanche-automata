@@ -117,21 +117,39 @@ export const useAutomataStore = create<RFState>((set, get) => ({
     const { nodes, edges } = get();
     const startNode = nodes.find(n => n.id === startNodeId);
     
-    if (!startNode) return;
+    if (!startNode) {
+      console.warn('⚠️ executeWorkflow: Start node not found:', startNodeId);
+      return;
+    }
+
+    console.log('🔄 executeWorkflow called for:', startNode.type, 'with data:', data);
 
     // Find all outgoing edges from this node
     const outgoingEdges = edges.filter(edge => edge.source === startNodeId);
+    console.log('📤 Found', outgoingEdges.length, 'outgoing edges:', outgoingEdges);
 
     // Handle conditional logic for AI decision nodes
     if (startNode.type === 'ai-decision') {
       const result = data.result?.toLowerCase();
-      const matchingEdge = outgoingEdges.find(edge => edge.sourceHandle === result);
+      console.log('🤖 AI Decision result:', result);
       
-      if (matchingEdge) {
-        await get().runNode(matchingEdge.target, data.originalData || data);
+      const matchingEdges = outgoingEdges.filter(edge => edge.sourceHandle === result);
+      console.log('🔍 Looking for edges with sourceHandle:', result);
+      console.log('✅ Found', matchingEdges.length, 'matching edge(s)');
+      
+      if (matchingEdges.length > 0) {
+        console.log('▶️ Running', matchingEdges.length, 'next node(s) with data:', data.originalData || data);
+        // Execute all matching edges sequentially to avoid nonce conflicts
+        for (const edge of matchingEdges) {
+          await get().runNode(edge.target, data.originalData || data);
+        }
+      } else {
+        console.warn('⚠️ No matching edges found for result:', result);
+        console.log('Available edges:', outgoingEdges.map(e => ({ source: e.source, target: e.target, sourceHandle: e.sourceHandle })));
       }
     } else {
       // For other nodes, execute all outgoing edges
+      console.log('▶️ Executing', outgoingEdges.length, 'outgoing edges');
       for (const edge of outgoingEdges) {
         await get().runNode(edge.target, data);
       }
@@ -156,6 +174,9 @@ export const useAutomataStore = create<RFState>((set, get) => ({
             throw new Error('AI Decision node missing prompt configuration');
           }
 
+          console.log('🤖 AI Decision - Prompt:', prompt);
+          console.log('🤖 AI Decision - Input data:', inputData);
+
           const response = await fetch('/api/ai-decision', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -163,10 +184,14 @@ export const useAutomataStore = create<RFState>((set, get) => ({
           });
 
           const result = await response.json();
+          console.log('🤖 AI Decision - API Response:', result);
           
           if (!result.success) {
+            console.error('❌ AI Decision failed:', result.error);
             throw new Error(result.error || 'AI Decision failed');
           }
+
+          console.log('✅ AI Decision - Result:', result.result, '(will be lowercased to:', result.result.toLowerCase() + ')');
 
           // Show success animation
           updateNodeStatus(nodeId, 'success_temp');
@@ -184,17 +209,25 @@ export const useAutomataStore = create<RFState>((set, get) => ({
         }
 
         case 'send-usdt': {
+          console.log('💰 Send USDT node executing');
+          console.log('💰 Input data:', inputData);
+          console.log('💰 Node data:', node.data);
+          
           let recipient = node.data.recipient || '';
           const amount = node.data.amount;
 
           if (!amount) {
+            console.error('❌ Send USDT: Missing amount');
             throw new Error('Send USDT node missing amount configuration');
           }
 
           // Handle data mapping for recipient
           if (recipient.includes('{{Trigger.data.to}}')) {
             recipient = inputData.to || recipient;
+            console.log('💰 Mapped recipient from data:', recipient);
           }
+
+          console.log('💰 Final recipient:', recipient, 'amount:', amount);
 
           const response = await fetch('/api/relay', {
             method: 'POST',
@@ -206,8 +239,10 @@ export const useAutomataStore = create<RFState>((set, get) => ({
           });
 
           const result = await response.json();
+          console.log('💰 Relay API response:', result);
           
           if (!result.success) {
+            console.error('❌ Send USDT failed:', result.error);
             throw new Error(result.error || 'Send USDT failed');
           }
 
@@ -224,16 +259,24 @@ export const useAutomataStore = create<RFState>((set, get) => ({
         }
 
         case 'mint-nft': {
+          console.log('🎨 Mint NFT node executing');
+          console.log('🎨 Input data:', inputData);
+          console.log('🎨 Node data:', node.data);
+          
           let recipient = node.data.recipient || '';
 
           // Handle data mapping for recipient
           if (recipient.includes('{{Trigger.data.to}}')) {
             recipient = inputData.to || recipient;
+            console.log('🎨 Mapped recipient from data:', recipient);
           }
 
           if (!recipient) {
+            console.error('❌ Mint NFT: Missing recipient');
             throw new Error('Mint NFT node missing recipient');
           }
+
+          console.log('🎨 Final recipient:', recipient);
 
           const response = await fetch('/api/relay', {
             method: 'POST',
@@ -245,8 +288,10 @@ export const useAutomataStore = create<RFState>((set, get) => ({
           });
 
           const result = await response.json();
+          console.log('🎨 Relay API response:', result);
           
           if (!result.success) {
+            console.error('❌ Mint NFT failed:', result.error);
             throw new Error(result.error || 'Mint NFT failed');
           }
 

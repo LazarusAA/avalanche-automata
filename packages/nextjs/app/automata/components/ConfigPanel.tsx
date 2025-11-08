@@ -69,6 +69,26 @@ const ConfigPanel = () => {
                 <option>Approval</option>
               </select>
             </div>
+            <div className="form-control mt-2">
+              <label className="label">
+                <span className="label-text">Exclude From Address (Optional)</span>
+              </label>
+              <input 
+                type="text" 
+                placeholder="0x... (prevents infinite loops)" 
+                className="input input-bordered"
+                value={selectedNode.data.excludeFromAddress || ''}
+                onChange={(e) =>
+                  updateNodeData(selectedNode.id, {
+                    ...selectedNode.data,
+                    excludeFromAddress: e.target.value,
+                  })
+                }
+              />
+              <label className="label">
+                <span className="label-text-alt">Excludes events where &apos;from&apos; matches this address</span>
+              </label>
+            </div>
           </div>
         );
       case "ai-decision":

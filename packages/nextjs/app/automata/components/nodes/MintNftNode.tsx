@@ -35,7 +35,7 @@ const MintNftNode = ({ data, isConnectable }: NodeProps) => {
           <h2 className="card-title text-sm">Mint NFT</h2>
         </div>
         <div className="text-xs mt-2">
-          <p>Recipient: {"{Trigger.data.to}"}</p>
+          <p className="truncate">Recipient: {data.recipient || 'Not configured'}</p>
         </div>
         {/* Main input handle */}
         <Handle

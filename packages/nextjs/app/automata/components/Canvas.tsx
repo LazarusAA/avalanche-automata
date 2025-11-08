@@ -23,6 +23,9 @@ import MintNftNode from "./nodes/MintNftNode";
 import DataEdge from "./edges/DataEdge";
 import ExecutionEdge from "./edges/ExecutionEdge";
 
+// Import the TestRunButton component
+import TestRunButton from "./TestRunButton";
+
 // Import the Zustand store
 import { useAutomataStore } from "../store";
 
@@ -93,7 +96,14 @@ const Canvas = () => {
   );
 
   return (
-    <div className="flex-1 h-full" ref={reactFlowWrapper}>
+    <div className="flex-1 h-full relative" ref={reactFlowWrapper}>
+      {/* Workflow Status Indicator */}
+      {nodes.some(n => n.type === 'onchain-event' && n.data.contractAddress && n.data.eventName) && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 badge badge-success gap-2">
+          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+          Workflow Active - Listening for events
+        </div>
+      )}
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -112,6 +122,8 @@ const Canvas = () => {
         <MiniMap className="!bg-base-200 rounded-box shadow-md" />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} className="!bg-base-100" />
       </ReactFlow>
+      {/* Test Run Button */}
+      <TestRunButton />
     </div>
   );
 };

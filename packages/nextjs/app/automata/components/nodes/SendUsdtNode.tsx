@@ -36,8 +36,8 @@ const SendUsdtNode = ({ data, isConnectable }: NodeProps) => {
         </div>
         {/* Inputs on the node card, as per UI/UX blueprint */}
         <div className="text-xs mt-2">
-          <p>Recipient: {"{Trigger.data.to}"}</p>
-          <p>Amount: 10</p>
+          <p className="truncate">Recipient: {data.recipient || 'Not configured'}</p>
+          <p>Amount: {data.amount || 'Not set'} USDT</p>
         </div>
         {/* Main input handle */}
         <Handle

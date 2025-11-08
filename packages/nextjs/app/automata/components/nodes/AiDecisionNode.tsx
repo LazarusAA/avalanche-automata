@@ -29,11 +29,19 @@ const AiDecisionNode = ({ data, isConnectable }: NodeProps) => {
 
   return (
     <div className={nodeClasses}>
-      <div className="card-body relative">
-        <div className="flex items-center gap-3">
+      <div className="card-body relative pr-16">
+        <div className="flex items-center gap-3 mb-1">
           <CpuChipIcon className="h-6 w-6 text-secondary" />
           <h2 className="card-title text-sm">AI Decision</h2>
         </div>
+        {data.prompt && (
+          <p className="text-xs text-base-content/70 line-clamp-1 pr-2" title={data.prompt}>
+            {data.prompt}
+          </p>
+        )}
+        {!data.prompt && (
+          <p className="text-xs text-base-content/50 italic">No prompt configured</p>
+        )}
         {/* Input handle */}
         <Handle
           type="target"

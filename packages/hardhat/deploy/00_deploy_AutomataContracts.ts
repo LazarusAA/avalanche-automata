@@ -64,12 +64,23 @@ const deployAutomataContracts: DeployFunction = async function (
   });
 
   const automataUsdt = await hre.ethers.getContract<Contract>("AutomataUsdt", deployer);
+  const automataUsdtAddress = await automataUsdt.getAddress();
   console.log(
-    `  > AutomataUsdt deployed to: ${await automataUsdt.getAddress()}`
+    `  > AutomataUsdt deployed to: ${automataUsdtAddress}`
   );
   console.log(
     `    - Using USDT Token at: ${await automataUsdt.usdtToken()}`
   );
+
+  // --- Approve AutomataUsdt to spend relayer's MockUSDT ---
+  if (network === "avalancheLocal" || network === "avalancheFuji") {
+    console.log(`\n  > Approving AutomataUsdt to spend deployer's MockUSDT...`);
+    const mockContract = await hre.ethers.getContract<Contract>("MockUSDT", deployer);
+    const approveAmount = hre.ethers.parseUnits("1000000", 18); // Approve 1M USDT
+    const approveTx = await mockContract.approve(automataUsdtAddress, approveAmount, { gasPrice: "225000000000" });
+    await approveTx.wait();
+    console.log(`  > Approved ${hre.ethers.formatUnits(approveAmount, 18)} mUSDT for AutomataUsdt contract`);
+  }
 
   // --- Deploy LoyaltyBadge Contract ---
   console.log(`\n  > Deploying LoyaltyBadge...`);

@@ -1,15 +1,24 @@
 import { Handle, Position, NodeProps } from "@xyflow/react";
 import { BoltIcon } from "@heroicons/react/24/outline";
 import { clsx } from "clsx";
-import { useEffect, useState } from "react";
-import { useScaffoldEventHistory } from "~~/hooks/scaffold-eth";
+import { useEffect, useState, useRef } from "react";
+import { ethers } from "ethers";
+import { useWdkProvider } from "~~/hooks/scaffold-eth";
 import { useAutomataStore } from "../../store";
 import { useShallow } from "zustand/react/shallow";
+
+// Minimal ABI for Transfer and Approval events
+const transferAbi = [
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+  "event Approval(address indexed owner, address indexed spender, uint256 value)"
+];
 
 // A simple DaisyUI card for the node
 const OnChainEventNode = ({ id, data, isConnectable }: NodeProps) => {
   const status = data.status || 'idle';
   const [processedLogs, setProcessedLogs] = useState(new Set<string>());
+  const lastPolledBlock = useRef<number | null>(null);
+  const [isWatching, setIsWatching] = useState(false);
   
   const { executeWorkflow } = useAutomataStore(
     useShallow((state) => ({
@@ -17,40 +26,135 @@ const OnChainEventNode = ({ id, data, isConnectable }: NodeProps) => {
     }))
   );
 
-  // Use the hook to listen for events - hardcoded to "LoyaltyBadge" contract
-  // The user can configure the eventName in the ConfigPanel
-  const isConfigured = data.contractAddress && data.eventName;
-  
-  const {
-    data: events,
-    isLoading,
-  } = useScaffoldEventHistory({
-    contractName: "LoyaltyBadge",
-    eventName: data.eventName || "Transfer",
-    // @ts-ignore - Watch for new events in real-time
-    watch: !!isConfigured,
-    // @ts-ignore - Only enable if configured
-    enabled: !!isConfigured,
-  });
+  // Get the provider for polling
+  const provider = useWdkProvider();
 
-  // Process new events and trigger workflows
+  // Get contract configuration from node data (trim to avoid ENS errors)
+  const contractAddress = (data.contractAddress as string | undefined)?.trim();
+  const eventName = (data.eventName as string | undefined) || "Transfer";
+  const isConfigured = contractAddress && eventName && ethers.isAddress(contractAddress);
+
+  // Polling-based event listener (MVP requirement: 5-second polling)
   useEffect(() => {
-    if (!events || events.length === 0 || !isConfigured) return;
+    if (!provider || !contractAddress || !eventName || !isConfigured) {
+      setIsWatching(false);
+      return;
+    }
 
-    events.forEach((event) => {
-      // Create a unique log ID from transaction hash and log index
-      const logId = `${event.transactionHash}-${event.logIndex}`;
-      
-      if (!processedLogs.has(logId)) {
-        // Mark this log as processed
-        setProcessedLogs((prev) => new Set(prev).add(logId));
-        
-        // Trigger the workflow with the event args
-        console.log('🔥 New event detected, triggering workflow:', event.args);
-        executeWorkflow(id, event.args);
+    console.log(`🔍 Starting to watch ${eventName} events on ${contractAddress}`);
+
+    // Create ethers interface for parsing events
+    const iface = new ethers.Interface(transferAbi);
+    
+    // Get the event fragment and topic hash
+    const eventFragment = iface.getEvent(eventName);
+    if (!eventFragment) {
+      console.error(`Event ${eventName} not found in ABI`);
+      return;
+    }
+    
+    // Create event filter
+    const filter = {
+      address: contractAddress,
+      topics: [eventFragment.topicHash],
+    };
+
+    setIsWatching(true);
+
+    // Poll immediately on start, then every 5 seconds
+    const pollForEvents = async () => {
+      try {
+        const latestBlock = await provider.getBlockNumber();
+
+        // Initialize lastPolledBlock on first run
+        if (lastPolledBlock.current === null) {
+          lastPolledBlock.current = latestBlock - 1;
+          console.log(`📍 Starting from block ${lastPolledBlock.current}`);
+        }
+
+        const fromBlock = lastPolledBlock.current + 1;
+
+        // No new blocks to check
+        if (fromBlock > latestBlock) {
+          return;
+        }
+
+        console.log(`🔎 Checking blocks ${fromBlock} to ${latestBlock}`);
+
+        // Fetch logs from new blocks
+        const logs = await provider.getLogs({
+          ...filter,
+          fromBlock,
+          toBlock: latestBlock,
+        });
+
+        // Process new logs
+        if (logs.length > 0) {
+          console.log(`✅ Found ${logs.length} event(s)!`);
+          logs.forEach((log: ethers.Log) => {
+            const logId = `${log.blockNumber}_${log.index}`;
+
+            if (!processedLogs.has(logId)) {
+              // Mark log as processed
+              setProcessedLogs((prev) => new Set(prev).add(logId));
+
+              // Parse event data
+              const parsedEvent = iface.parseLog({
+                topics: [...log.topics],
+                data: log.data,
+              });
+
+              // Trigger the workflow with parsed event args
+              console.log('🔥 New event detected, triggering workflow:', parsedEvent?.args);
+              if (parsedEvent) {
+                // Convert ethers.js Result (Proxy) to plain object
+                // We need to manually extract the named properties
+                const argsObject: Record<string, any> = {};
+                
+                // Get the event fragment to know which parameters exist
+                const fragment = parsedEvent.fragment;
+                
+                // Extract each named parameter from the args
+                fragment.inputs.forEach((input, index) => {
+                  const value = parsedEvent.args[index];
+                  // Convert BigInt to string for JSON serialization
+                  argsObject[input.name] = typeof value === 'bigint' ? value.toString() : value;
+                });
+                
+                console.log('📦 Converted event args to plain object:', argsObject);
+                
+                // Apply excludeFromAddress filter to prevent infinite loops
+                const excludeFromAddress = (data.excludeFromAddress as string | undefined)?.toLowerCase();
+                if (excludeFromAddress && argsObject.from?.toLowerCase() === excludeFromAddress) {
+                  console.log('⏭️ Skipping event: from address matches exclude filter');
+                  return;
+                }
+                
+                executeWorkflow(id, argsObject);
+              }
+            }
+          });
+        }
+
+        // Update the last polled block
+        lastPolledBlock.current = latestBlock;
+      } catch (error) {
+        console.error('Error polling for events:', error);
       }
-    });
-  }, [events, id, executeWorkflow, isConfigured, processedLogs]);
+    };
+
+    // Run immediately
+    pollForEvents();
+
+    // Set up 5-second polling interval
+    const intervalId = setInterval(pollForEvents, 5000);
+
+    // Cleanup on unmount or dependency change
+    return () => {
+      clearInterval(intervalId);
+      setIsWatching(false);
+    };
+  }, [provider, contractAddress, eventName, executeWorkflow, id, isConfigured]);
 
   const nodeClasses = clsx(
     'card card-compact w-64 bg-base-100 shadow-xl border-2 border-primary',
@@ -82,10 +186,10 @@ const OnChainEventNode = ({ id, data, isConnectable }: NodeProps) => {
         </div>
         <p className="text-xs text-base-content/70">
           {data.eventName && data.contractAddress
-            ? `On ${data.eventName} at ${data.contractAddress.slice(0, 6)}...${data.contractAddress.slice(-4)}`
+            ? `On ${data.eventName} at ${(data.contractAddress as string).slice(0, 6)}...${(data.contractAddress as string).slice(-4)}`
             : "Configure event in panel →"}
         </p>
-        {isConfigured && isLoading && (
+        {isConfigured && isWatching && (
           <p className="text-xs text-info">Watching for events...</p>
         )}
         {/* Output handle as per UI/UX blueprint */}

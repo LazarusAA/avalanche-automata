@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   1337: {
     AutomataUsdt: {
-      address: "0x37913A8722954A0736F79Db25c2e0635118eeDC8",
+      address: "0x5aa01B3b5877255cE50cc55e8986a7a5fe29C70e",
       abi: [
         {
           inputs: [
@@ -343,10 +343,10 @@ const deployedContracts = {
         eip712Domain: "@openzeppelin/contracts/utils/cryptography/EIP712.sol",
         nonces: "@openzeppelin/contracts/utils/Nonces.sol",
       },
-      deployedOnBlock: 26,
+      deployedOnBlock: 3,
     },
     LoyaltyBadge: {
-      address: "0xDFBb4b49DfAe39720f68f8297ADb2368FeffaDdb",
+      address: "0x4Ac1d98D9cEF99EC6546dEd4Bd550b0b287aaD6D",
       abi: [
         {
           inputs: [
@@ -978,10 +978,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 27,
+      deployedOnBlock: 5,
     },
     MockUSDT: {
-      address: "0xBBfCE55AD100b5bEd880083fCE366120347Af872",
+      address: "0x52C84043CD9c865236f11d9Fc9F56aa003c1f922",
       abi: [
         {
           inputs: [
@@ -1414,7 +1414,7 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 24,
+      deployedOnBlock: 1,
     },
   },
 } as const;
