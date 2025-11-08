@@ -46,7 +46,7 @@ const edgeTypes = {
 
 const Canvas = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, setSelectedNodeId } =
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onNodesDelete, addNode, setSelectedNodeId } =
     useAutomataStore(
       useShallow((state) => ({
         nodes: state.nodes,
@@ -54,6 +54,7 @@ const Canvas = () => {
         onNodesChange: state.onNodesChange,
         onEdgesChange: state.onEdgesChange,
         onConnect: state.onConnect,
+        onNodesDelete: state.onNodesDelete,
         addNode: state.addNode,
         setSelectedNodeId: state.setSelectedNodeId,
       }))
@@ -110,6 +111,7 @@ const Canvas = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onNodesDelete={onNodesDelete}
         onDrop={onDrop}
         onDragOver={onDragOver}
         nodeTypes={nodeTypes} // Pass the custom node types

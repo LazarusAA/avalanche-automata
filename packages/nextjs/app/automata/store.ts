@@ -23,9 +23,11 @@ export type RFState = {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
+  onNodesDelete: (deletedNodes: Node[]) => void;
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
   addNode: (node: Node) => void;
+  deleteNode: (nodeId: string) => void;
   setSelectedNodeId: (id: string | null) => void;
   openDataMapModal: (nodeId: string, field: string) => void;
   closeDataMapModal: () => void;
@@ -70,6 +72,16 @@ export const useAutomataStore = create<RFState>((set, get) => ({
     });
   },
 
+  onNodesDelete: (deletedNodes: Node[]) => {
+    const deletedNodeIds = new Set(deletedNodes.map(n => n.id));
+    set({
+      nodes: get().nodes.filter(n => !deletedNodeIds.has(n.id)),
+      edges: get().edges.filter(
+        e => !deletedNodeIds.has(e.source) && !deletedNodeIds.has(e.target)
+      ),
+    });
+  },
+
   setNodes: (nodes: Node[]) => {
     set({ nodes });
   },
@@ -82,6 +94,14 @@ export const useAutomataStore = create<RFState>((set, get) => ({
     set({
       nodes: [...get().nodes, node],
     });
+  },
+
+  deleteNode: (nodeId: string) => {
+    const nodeToDelete = get().nodes.find(n => n.id === nodeId);
+    if (nodeToDelete) {
+      get().onNodesDelete([nodeToDelete]);
+    }
+    get().setSelectedNodeId(null); // Deselect after deleting
   },
 
   setSelectedNodeId: (id: string | null) => {

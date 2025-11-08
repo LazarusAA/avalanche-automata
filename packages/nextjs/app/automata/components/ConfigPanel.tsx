@@ -5,13 +5,14 @@ import { useShallow } from "zustand/react/shallow";
 import { useAutomataStore } from "../store";
 
 const ConfigPanel = () => {
-  const { nodes, selectedNodeId, setSelectedNodeId, openDataMapModal, updateNodeData } = useAutomataStore(
+  const { nodes, selectedNodeId, setSelectedNodeId, openDataMapModal, updateNodeData, deleteNode } = useAutomataStore(
     useShallow((state) => ({
       nodes: state.nodes,
       selectedNodeId: state.selectedNodeId,
       setSelectedNodeId: state.setSelectedNodeId,
       openDataMapModal: state.openDataMapModal,
       updateNodeData: state.updateNodeData,
+      deleteNode: state.deleteNode,
     }))
   );
 
@@ -201,6 +202,14 @@ const ConfigPanel = () => {
         </button>
       </div>
       {renderConfig()}
+      
+      <div className="divider my-4"></div>
+      <button
+        className="btn btn-error btn-outline w-full"
+        onClick={() => deleteNode(selectedNode.id)}
+      >
+        Delete Node
+      </button>
     </div>
   );
 };
