@@ -19,6 +19,10 @@ import AiDecisionNode from "./nodes/AiDecisionNode";
 import SendUsdtNode from "./nodes/SendUsdtNode";
 import MintNftNode from "./nodes/MintNftNode";
 
+// Import the custom edge components
+import DataEdge from "./edges/DataEdge";
+import ExecutionEdge from "./edges/ExecutionEdge";
+
 // Import the Zustand store
 import { useAutomataStore } from "../store";
 
@@ -29,6 +33,12 @@ const nodeTypes = {
   "ai-decision": AiDecisionNode,
   "send-usdt": SendUsdtNode,
   "mint-nft": MintNftNode,
+};
+
+// Register the custom edge types
+const edgeTypes = {
+  dataEdge: DataEdge,
+  executionEdge: ExecutionEdge,
 };
 
 const Canvas = () => {
@@ -93,13 +103,14 @@ const Canvas = () => {
         onDrop={onDrop}
         onDragOver={onDragOver}
         nodeTypes={nodeTypes} // Pass the custom node types
+        edgeTypes={edgeTypes} // Pass the custom edge types
         onNodeClick={(_, node) => setSelectedNodeId(node.id)} // Set selected node on click
         onPaneClick={() => setSelectedNodeId(null)} // Clear selection on pane click
         fitView
       >
-        <Controls />
-        <MiniMap />
-        <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+        <Controls className="react-flow-controls-daisy" />
+        <MiniMap className="!bg-base-200 rounded-box shadow-md" />
+        <Background variant={BackgroundVariant.Dots} gap={12} size={1} className="!bg-base-100" />
       </ReactFlow>
     </div>
   );

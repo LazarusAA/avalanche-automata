@@ -119,3 +119,40 @@
 .link:hover {
   opacity: 80%;
 }
+
+.react-flow-controls-daisy button {
+  @apply bg-base-200 text-base-content border-base-300 shadow-md;
+}
+
+.react-flow-controls-daisy button:hover {
+  @apply bg-base-300;
+}
+
+@keyframes pulse-blue {
+  0%, 100% { border-color: var(--color-info); }
+  50% { border-color: color-mix(in srgb, var(--color-info) 50%, transparent); }
+}
+
+@keyframes glow-green {
+  0% { box-shadow: 0 0 0px 0px transparent; }
+  50% { box-shadow: 0 0 12px 3px color-mix(in srgb, var(--color-success) 50%, transparent); }
+  100% { box-shadow: 0 0 0px 0px transparent; }
+}
+
+@keyframes glow-red {
+  0% { box-shadow: 0 0 0px 0px transparent; }
+  50% { box-shadow: 0 0 12px 3px color-mix(in srgb, var(--color-error) 50%, transparent); }
+  100% { box-shadow: 0 0 0px 0px transparent; }
+}
+
+.animate-pulse-blue { 
+  animation: pulse-blue 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; 
+}
+
+.animate-glow-green { 
+  animation: glow-green 1.5s ease-out; 
+}
+
+.animate-glow-red { 
+  animation: glow-red 1.5s ease-out; 
+}

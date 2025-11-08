@@ -5,6 +5,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import Sidebar from "./components/Sidebar";
 import Canvas from "./components/Canvas";
 import ConfigPanel from "./components/ConfigPanel";
+import DataMapModal from "./components/DataMapModal";
 import "@xyflow/react/dist/style.css";
 
 const AutomataPage: NextPage = () => {
@@ -23,6 +24,7 @@ const AutomataPage: NextPage = () => {
         {/* 3. Right Config Panel: "Progressive Disclosure" */}
         <ConfigPanel />
       </div>
+      <DataMapModal />
     </ReactFlowProvider>
   );
 };

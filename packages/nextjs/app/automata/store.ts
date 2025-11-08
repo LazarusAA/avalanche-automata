@@ -18,6 +18,8 @@ export type RFState = {
   nodes: Node[];
   edges: Edge[];
   selectedNodeId: string | null; // For the config panel
+  isDataMapModalOpen: boolean;
+  dataMapModalTarget: { nodeId: string; field: string } | null;
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
@@ -25,6 +27,9 @@ export type RFState = {
   setEdges: (edges: Edge[]) => void;
   addNode: (node: Node) => void;
   setSelectedNodeId: (id: string | null) => void;
+  openDataMapModal: (nodeId: string, field: string) => void;
+  closeDataMapModal: () => void;
+  updateNodeData: (nodeId: string, field: string, value: any) => void;
 };
 
 // Create the store
@@ -32,6 +37,8 @@ export const useAutomataStore = create<RFState>((set, get) => ({
   nodes: [],
   edges: [],
   selectedNodeId: null,
+  isDataMapModalOpen: false,
+  dataMapModalTarget: null,
 
   onNodesChange: (changes: NodeChange[]) => {
     set({
@@ -46,8 +53,17 @@ export const useAutomataStore = create<RFState>((set, get) => ({
   },
 
   onConnect: (connection: Connection) => {
+    // Check if the connection is for execution flow
+    const isExecution = ['true', 'false', 'on-success'].includes(connection.sourceHandle || '');
+    
+    const newEdge: Edge = {
+      ...connection,
+      type: isExecution ? 'executionEdge' : 'dataEdge',
+      animated: false, // Default to not animated
+    };
+    
     set({
-      edges: addEdge(connection, get().edges),
+      edges: addEdge(newEdge, get().edges),
     });
   },
 
@@ -67,5 +83,23 @@ export const useAutomataStore = create<RFState>((set, get) => ({
 
   setSelectedNodeId: (id: string | null) => {
     set({ selectedNodeId: id });
+  },
+
+  openDataMapModal: (nodeId: string, field: string) => {
+    set({ isDataMapModalOpen: true, dataMapModalTarget: { nodeId, field } });
+  },
+
+  closeDataMapModal: () => {
+    set({ isDataMapModalOpen: false, dataMapModalTarget: null });
+  },
+
+  updateNodeData: (nodeId: string, field: string, value: any) => {
+    set({
+      nodes: get().nodes.map(node =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, [field]: value } }
+          : node
+      ),
+    });
   },
 }));

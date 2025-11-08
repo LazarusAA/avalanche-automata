@@ -1,15 +1,16 @@
 "use client";
 
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, ArrowsRightLeftIcon } from "@heroicons/react/24/outline";
 import { useShallow } from "zustand/react/shallow";
 import { useAutomataStore } from "../store";
 
 const ConfigPanel = () => {
-  const { nodes, selectedNodeId, setSelectedNodeId } = useAutomataStore(
+  const { nodes, selectedNodeId, setSelectedNodeId, openDataMapModal } = useAutomataStore(
     useShallow((state) => ({
       nodes: state.nodes,
       selectedNodeId: state.selectedNodeId,
       setSelectedNodeId: state.setSelectedNodeId,
+      openDataMapModal: state.openDataMapModal,
     }))
   );
 
@@ -74,7 +75,22 @@ const ConfigPanel = () => {
               <label className="label">
                 <span className="label-text">Recipient</span>
               </label>
-              <input type="text" placeholder="e.g., {{Trigger.data.to}}" className="input input-bordered" />
+              <div className="join w-full">
+                <input
+                  type="text"
+                  placeholder="e.g., {{Trigger.data.to}}"
+                  className="input input-bordered join-item w-full"
+                  value={selectedNode.data.recipient || ''}
+                  readOnly
+                />
+                <button
+                  className="btn btn-square btn-ghost join-item"
+                  onClick={() => openDataMapModal(selectedNode.id, 'recipient')}
+                  title="Map data from previous step"
+                >
+                  <ArrowsRightLeftIcon className="h-5 w-5" />
+                </button>
+              </div>
             </div>
             <div className="form-control mt-2">
               <label className="label">
@@ -93,7 +109,22 @@ const ConfigPanel = () => {
               <label className="label">
                 <span className="label-text">Recipient</span>
               </label>
-              <input type="text" placeholder="e.g., {{Trigger.data.to}}" className="input input-bordered" />
+              <div className="join w-full">
+                <input
+                  type="text"
+                  placeholder="e.g., {{Trigger.data.to}}"
+                  className="input input-bordered join-item w-full"
+                  value={selectedNode.data.recipient || ''}
+                  readOnly
+                />
+                <button
+                  className="btn btn-square btn-ghost join-item"
+                  onClick={() => openDataMapModal(selectedNode.id, 'recipient')}
+                  title="Map data from previous step"
+                >
+                  <ArrowsRightLeftIcon className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
         );
