@@ -43,7 +43,7 @@ const MintNftNode = ({ data, isConnectable }: NodeProps) => {
           position={Position.Left}
           id="exec"
           isConnectable={isConnectable}
-          className="!bg-base-content/40"
+          className="!bg-base-content/40 !w-3 !h-3"
         />
       </div>
     </div>

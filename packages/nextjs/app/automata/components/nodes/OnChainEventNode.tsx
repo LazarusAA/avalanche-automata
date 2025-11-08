@@ -198,7 +198,7 @@ const OnChainEventNode = ({ id, data, isConnectable }: NodeProps) => {
           position={Position.Right}
           id="data"
           isConnectable={isConnectable}
-          className="!bg-base-content/40"
+          className="!bg-base-content/40 !w-3 !h-3"
         />
       </div>
     </div>

@@ -48,7 +48,7 @@ const AiDecisionNode = ({ data, isConnectable }: NodeProps) => {
           position={Position.Left}
           id="data"
           isConnectable={isConnectable}
-          className="!bg-base-content/40"
+          className="!bg-base-content/40 !w-3 !h-3"
         />
         {/* Two output handles with labels */}
         <div className="absolute right-0 top-[33%] flex items-center gap-2 translate-x-2 -translate-y-1/2">
@@ -58,7 +58,7 @@ const AiDecisionNode = ({ data, isConnectable }: NodeProps) => {
             position={Position.Right}
             id="true"
             isConnectable={isConnectable}
-            className="!bg-green-500 !static"
+            className="!bg-green-500 !static !w-3 !h-3"
           />
         </div>
         <div className="absolute right-0 top-[66%] flex items-center gap-2 translate-x-2 -translate-y-1/2">
@@ -68,7 +68,7 @@ const AiDecisionNode = ({ data, isConnectable }: NodeProps) => {
             position={Position.Right}
             id="false"
             isConnectable={isConnectable}
-            className="!bg-red-500 !static"
+            className="!bg-red-500 !static !w-3 !h-3"
           />
         </div>
       </div>
